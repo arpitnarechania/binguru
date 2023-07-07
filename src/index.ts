@@ -1245,26 +1245,8 @@ export class BinGuru {
     let dataMin = context.min;
     let dataMax = context.max;
     let binBreaks = binningMethodName == UNCLASSED ? binguruRes["dataRange"] : binguruRes["binBreaks"];
-    let [binMin, binMax] = [Infinity, -Infinity];
-    for (var i = 0; i < binBreaks.length; i++) {
-      let val = binBreaks[i];
-      if (binMin > val) {
-        binMin = val;
-      }
-      if (binMax < val) {
-        binMax = val;
-      }
-    }
-    if (binMin > dataMin) {
-      binMin = dataMin;
-    } else if (binMin <= dataMin){
-      binMin = parseFloat((dataMin * 0.9).toFixed(context.precision)); // Heuristic just to go just beyond the dataMin
-    }
-    if (binMax < dataMax) {
-      binMax = dataMax;
-    }else if(binMax >= dataMax){
-      binMax = parseFloat((dataMax * 1.1).toFixed(context.precision)); // Heuristic just to go just beyond the dataMax
-    }
+    let [binMin, binMax] = [Math.min(...[dataMin, binguruRes["binBreaks"][0]]), Math.max(...[dataMax, binguruRes["binBreaks"][binguruRes["binBreaks"].length - 1]])];
+    [binMin, binMax] = [parseFloat((binMin * 0.9).toFixed(context.precision)), parseFloat((binMax * 1.1).toFixed(context.precision))];
 
     let data: object[] = [];
     let dataTicks: number[] = [];
