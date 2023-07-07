@@ -1003,7 +1003,7 @@ export class BinGuru {
       obj["value"] = context.rawData[valindex];
       obj["binCandidates"] = [];
 
-      binningMethods.forEach(function (binningMethod) {
+      Object.keys(binningMethodObjs).forEach(function (binningMethod) {
         obj["binCandidates"].push(JSON.parse(JSON.stringify(binningMethodObjs[binningMethod]["dataBinAssignments"][primaryKey])));
       });
       resiliencyData.push(obj);
