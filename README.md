@@ -22,29 +22,21 @@ let bins = binGuruObj.fisherJenks(); // Call an endpoint, e.g., fisherJenks() to
 console.log(bins);
 ```
 
-### API
-Coming soon.
-
-
-### Demos
-Coming soon.
+### API and Demo
+Check out this <a target="_blank" href="https://observablehq.com/@arpitnarechania/binguru-demo">Observable Notebook</a>.
 
 
 ### Build and Publish
 - Install dependencies: `npm install`
 - Build the package: `npm run build`
+- Set version: `npm version prerelease --preid=<version>`
+- Dry run: `npm publish --dry-run`
 - Publish to the registry: `npm publish`
-
-
-### Test
-Coming soon.
 
 
 ### Credits
 BinGuru was created by
-<a target="_blank" href="http://narechania.com">Arpit Narechania</a>, <a href="https://va.gatech.edu/endert/">Alex Endert</a>, and <a href="https://friendlycities.gatech.edu/">Clio Andris</a> of the <a target="_blank" href="http://vis.gatech.edu/">Georgia Tech Visualization Lab.</a>
-
-We thank the members of the <a target="_blank" href="http://vis.gatech.edu/">Georgia Tech Visualization Lab</a> for their support and constructive feedback.</p>
+<a target="_blank" href="http://narechania.com">Arpit Narechania</a>, <a href="https://va.gatech.edu/endert/">Alex Endert</a>, and <a href="https://friendlycities.gatech.edu/">Clio Andris</a> of the <a target="_blank" href="https://vis.gatech.edu/">Georgia Tech Visualization Lab.</a> We thank the members of the <a target="_blank" href="http://vis.gatech.edu/">Georgia Tech Visualization Lab</a> for their support and constructive feedback.</p>
 
 
 ### Citations
