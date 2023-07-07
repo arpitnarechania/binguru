@@ -24,7 +24,6 @@ export const HEAD_TAIL_BREAKS = "headTailBreaks";
 export const FISHER_JENKS = "fisherJenks";
 export const EXPONENTIAL_BIN_SIZE = "exponentialBinSizes";
 export const GEOMETRIC_INTERVAL = "geometricInterval";
-export const LOGARITHMIC_INTERVAL = "logarithmicInterval";
 export const UNCLASSED = "unclassed";
 export const UNIQUE = "unique";
 export const MANUAL_INTERVAL = "manualInterval";
@@ -581,50 +580,6 @@ export class BinGuru {
 
 
   /**
-   * Logarithmic Interval
-   * Intervals grow exponentially, based on a logarithmic scale, to accommodate a wide range of data values and emphasize relative differences at both small and large scales.
-   * @returns { binCount: number, binBreaks: number[], binSizes: object, dataRange: number[], dataBinAssignments: object }
-   */
-  logarithmicInterval() {
-    let context = this;
-    let binBreaks: number[] = [];
-    let binBreak: number = context.min;
-
-    // Calculate the logarithmic interval size
-    let max = context.max;
-    let min = context.min;
-    const epsilon = 1e-10;
-    if(max == 0){
-      max = epsilon;
-    }
-    if(min == 0){
-      min = epsilon;
-    }
-    const logIntervalSize = (Math.log10(context.max) - Math.log10(context.min)) / context.binCount;
-    for (let i = 0; i < context.binCount; i++) {
-      if (i != 0) binBreaks.push(binBreak);
-      binBreak *= Math.pow(10, logIntervalSize);
-    }
-
-    // Compute Bin Sizes
-    let binSizes = context.computeBinSizes(binBreaks);
-
-    // Compute Data-> Bin Assignments
-    let dataBinAssignments = context.computeDataBinAssignments(binBreaks);
-
-    // Return final Bin Object
-    return {
-      "rawData": context.rawData,
-      "data": context.data,
-      "dataRange": [context.min, context.max],
-      "binCount": binBreaks.length + 1,
-      "binBreaks": context.roundToPrecision(binBreaks, context.precision),
-      "binSizes": binSizes,
-      "dataBinAssignments": dataBinAssignments
-    }
-  }
-
-  /**
    * Exponential Bin Size
    * Intervals are selected so that the number of observations in each successive interval increases (or decreases) exponentially
    * @returns { binCount: number, binBreaks: number[], binSizes: object, dataRange: number[], dataBinAssignments: object }
@@ -936,104 +891,89 @@ export class BinGuru {
    * Resiliency
    * @returns { binCount: number, binBreaks: number[], binSizes: object, dataRange: number[], dataBinAssignments: object }
    */
-  resiliency(binningMethods = []) {
+  resiliency(binningMethods: string[] = [], binningMethodObjs:any = {}) {
     let context = this;
     let binBreaks: number[] = [];
 
-    // Data structure to store the binObj corresponding to each binningMethod.
-    let binObjs: any = {};
-
-    binningMethods.forEach(function (binningMethod) {
-      let binObj: any = {};
-      switch (binningMethod) {
-        case EQUAL_INTERVAL:
-          binObj = context.equalInterval();
-          binObjs[EQUAL_INTERVAL] = JSON.parse(JSON.stringify(binObj));
-          break;
-
-        case PERCENTILE:
-          binObj = context.percentile();
-          binObjs[PERCENTILE] = JSON.parse(JSON.stringify(binObj));
-          break;
-
-        case QUANTILE:
-          binObj = context.quantile();
-          binObjs[QUANTILE] = JSON.parse(JSON.stringify(binObj));
-          break;
-
-        case STANDARD_DEVIATION:
-          binObj = context.standardDeviation();
-          binObjs[STANDARD_DEVIATION] = JSON.parse(JSON.stringify(binObj));
-          break;
-
-        case MANUAL_INTERVAL:
-          binObj = context.manualInterval();
-          binObjs[MANUAL_INTERVAL] = JSON.parse(JSON.stringify(binObj));
-          break;
-
-        case PRETTY_BREAKS:
-          binObj = context.prettyBreaks();
-          binObjs[PRETTY_BREAKS] = JSON.parse(JSON.stringify(binObj));
-          break;
-
-        case MAXIMUM_BREAKS:
-          binObj = context.maximumBreaks();
-          binObjs[MAXIMUM_BREAKS] = JSON.parse(JSON.stringify(binObj));
-          break;
-
-        case HEAD_TAIL_BREAKS:
-          binObj = context.headTailBreaks();
-          binObjs[HEAD_TAIL_BREAKS] = JSON.parse(JSON.stringify(binObj));
-          break;
-
-        case CK_MEANS:
-          binObj = context.ckMeans();
-          binObjs[CK_MEANS] = JSON.parse(JSON.stringify(binObj));
-          break;
-
-        case BOXPLOT:
-          binObj = context.boxPlot();
-          binObjs[BOXPLOT] = JSON.parse(JSON.stringify(binObj));
-          break;
-
-        case DEFINED_INTERVAL:
-          binObj = context.definedInterval();
-          binObjs[DEFINED_INTERVAL] = JSON.parse(JSON.stringify(binObj));
-          break;
-
-        case EXPONENTIAL_BIN_SIZE:
-          binObj = context.exponentialBinSizes();
-          binObjs[EXPONENTIAL_BIN_SIZE] = JSON.parse(JSON.stringify(binObj));
-          break;
-
-        case LOGARITHMIC_INTERVAL:
-          binObj = context.logarithmicInterval();
-          binObjs[LOGARITHMIC_INTERVAL] = JSON.parse(JSON.stringify(binObj));
-          break;
-
-        case GEOMETRIC_INTERVAL:
-          binObj = context.geometricInterval();
-          binObjs[GEOMETRIC_INTERVAL] = JSON.parse(JSON.stringify(binObj));
-          break;
-
-        case FISHER_JENKS:
-          binObj = context.fisherJenks();
-          binObjs[FISHER_JENKS] = JSON.parse(JSON.stringify(binObj));
-          break;
-
-        default:
-          binObj = {
-            "rawData": context.rawData,
-            "data": context.data,
-            "dataRange": [context.min, context.max],
-            "binCount": null,
-            "binBreaks": [],
-            "binSizes": { "valids": null, "invalids": null },
-            "dataBinAssignments": {}
-          };
-          binObjs["default"] = JSON.parse(JSON.stringify(binObj));
-      }
-    });
+    if(binningMethods.length > 0){
+      binningMethods.forEach(function (binningMethod) {
+        let binObj: any = {};
+        switch (binningMethod) {
+          case EQUAL_INTERVAL:
+            binObj = context.equalInterval();
+            binningMethodObjs[EQUAL_INTERVAL] = JSON.parse(JSON.stringify(binObj));
+            break;
+  
+          case PERCENTILE:
+            binObj = context.percentile();
+            binningMethodObjs[PERCENTILE] = JSON.parse(JSON.stringify(binObj));
+            break;
+  
+          case QUANTILE:
+            binObj = context.quantile();
+            binningMethodObjs[QUANTILE] = JSON.parse(JSON.stringify(binObj));
+            break;
+  
+          case STANDARD_DEVIATION:
+            binObj = context.standardDeviation();
+            binningMethodObjs[STANDARD_DEVIATION] = JSON.parse(JSON.stringify(binObj));
+            break;
+  
+          case MANUAL_INTERVAL:
+            binObj = context.manualInterval();
+            binningMethodObjs[MANUAL_INTERVAL] = JSON.parse(JSON.stringify(binObj));
+            break;
+  
+          case PRETTY_BREAKS:
+            binObj = context.prettyBreaks();
+            binningMethodObjs[PRETTY_BREAKS] = JSON.parse(JSON.stringify(binObj));
+            break;
+  
+          case MAXIMUM_BREAKS:
+            binObj = context.maximumBreaks();
+            binningMethodObjs[MAXIMUM_BREAKS] = JSON.parse(JSON.stringify(binObj));
+            break;
+  
+          case HEAD_TAIL_BREAKS:
+            binObj = context.headTailBreaks();
+            binningMethodObjs[HEAD_TAIL_BREAKS] = JSON.parse(JSON.stringify(binObj));
+            break;
+  
+          case CK_MEANS:
+            binObj = context.ckMeans();
+            binningMethodObjs[CK_MEANS] = JSON.parse(JSON.stringify(binObj));
+            break;
+  
+          case BOXPLOT:
+            binObj = context.boxPlot();
+            binningMethodObjs[BOXPLOT] = JSON.parse(JSON.stringify(binObj));
+            break;
+  
+          case DEFINED_INTERVAL:
+            binObj = context.definedInterval();
+            binningMethodObjs[DEFINED_INTERVAL] = JSON.parse(JSON.stringify(binObj));
+            break;
+  
+          case EXPONENTIAL_BIN_SIZE:
+            binObj = context.exponentialBinSizes();
+            binningMethodObjs[EXPONENTIAL_BIN_SIZE] = JSON.parse(JSON.stringify(binObj));
+            break;
+  
+          case GEOMETRIC_INTERVAL:
+            binObj = context.geometricInterval();
+            binningMethodObjs[GEOMETRIC_INTERVAL] = JSON.parse(JSON.stringify(binObj));
+            break;
+  
+          case FISHER_JENKS:
+            binObj = context.fisherJenks();
+            binningMethodObjs[FISHER_JENKS] = JSON.parse(JSON.stringify(binObj));
+            break;
+  
+          default:
+            ;
+        }
+      });
+    }
 
     let frequencyOfMostFrequentBins: any = {};
     let mostFrequentBins: any = {};
@@ -1042,7 +982,7 @@ export class BinGuru {
       // Let the primary key be index of the item in the rawDataArray.
       let primaryKey = valindex.toString();
       if (context.isValid(val)) {
-        let binAssignmentsForPrimaryKey = Array.from(Object.values(binObjs)).map((binObj: any) => binObj["dataBinAssignments"][primaryKey]);
+        let binAssignmentsForPrimaryKey = Array.from(Object.values(binningMethodObjs)).map((binObj: any) => binObj["dataBinAssignments"][primaryKey]);
         if (!(primaryKey in frequencyOfMostFrequentBins)) {
           frequencyOfMostFrequentBins[primaryKey] = 0;
         }
@@ -1064,7 +1004,7 @@ export class BinGuru {
       obj["binCandidates"] = [];
 
       binningMethods.forEach(function (binningMethod) {
-        obj["binCandidates"].push(JSON.parse(JSON.stringify(binObjs[binningMethod]["dataBinAssignments"][primaryKey])));
+        obj["binCandidates"].push(JSON.parse(JSON.stringify(binningMethodObjs[binningMethod]["dataBinAssignments"][primaryKey])));
       });
       resiliencyData.push(obj);
     });
@@ -1141,7 +1081,7 @@ export class BinGuru {
       "binBreaks": context.roundToPrecision(binBreaks, context.precision),
       "binSizes": binSizes,
       "dataBinAssignments": dataBinAssignments,
-      "binObjs": binObjs,
+      "binObjs": binningMethodObjs,
       "mostFrequentBins": mostFrequentBins,
       "frequencyOfMostFrequentBins": frequencyOfMostFrequentBins
     };
@@ -1245,8 +1185,11 @@ export class BinGuru {
     let dataMin = context.min;
     let dataMax = context.max;
     let binBreaks = binningMethodName == UNCLASSED ? binguruRes["dataRange"] : binguruRes["binBreaks"];
-    let [binMin, binMax] = [Math.min(...[dataMin, binguruRes["binBreaks"][0]]), Math.max(...[dataMax, binguruRes["binBreaks"][binguruRes["binBreaks"].length - 1]])];
-    [binMin, binMax] = [parseFloat((binMin * 0.9).toFixed(context.precision)), parseFloat((binMax * 1.1).toFixed(context.precision))];
+    let [binMin, binMax] = [Math.min(...[dataMin, binBreaks[0]]), Math.max(...[dataMax, binBreaks[binBreaks.length - 1]])];
+
+    if(binningMethodName != UNCLASSED){
+      [binMin, binMax] = [parseFloat((binMin * 0.9).toFixed(context.precision)), parseFloat((binMax * 1.1).toFixed(context.precision))];
+    }
 
     let data: object[] = [];
     let dataTicks: number[] = [];
