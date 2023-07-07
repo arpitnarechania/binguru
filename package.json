@@ -1,6 +1,6 @@
 {
   "name": "binguru",
-  "version": "1.0.0-alpha.15.0",
+  "version": "1.0.0-alpha.16.0",
   "description": "BinGuru is a Javascript package with an API to several established data binning / data classification methods, often used for visualizing data on choropleth maps. It also includes an implementation of a new, consensus binning method, 'Resiliency'.",
   "main": "dist/index.mjs",
   "scripts": {
