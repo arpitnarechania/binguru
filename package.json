@@ -19,12 +19,12 @@
     "data",
     "binning;",
     "data",
-    "classification;",
-    "choropleth;",
-    "maps;",
-    "GIS;",
-    "cartography;",
-    "visualization;"
+    "classification",
+    "choropleth",
+    "maps",
+    "GIS",
+    "cartography",
+    "visualization"
   ],
   "author": "Arpit Narechania, Alex Endert, Clio Andris",
   "license": "MIT",
