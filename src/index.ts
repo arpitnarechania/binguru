@@ -362,27 +362,25 @@ export class BinGuru {
    * Mean - Standard Deviation
    * @returns { binCount: number, binBreaks: number[], binSizes: object, dataRange: number[], dataBinAssignments: object }
    */
-  standardDeviation() {
+  standardDeviation(meanAsBinBoundary=false, sdfactor=1) {
     let context = this;
     let binBreaks: number[] = [];
     let binCount = context.binCount; // We create a copy of binCount because we modify it for a specific case (when it is a odd number) but we don't want to update the global setting. 
 
-    // If there are even binCount
-    let minStart = 0;
-    let increment = 0;
-    if (binCount % 2 == 0) {
-      minStart = context.mean - (context.sd * (binCount / 2 - 1));
-      increment = context.sd; // 1 standard deviation
-    } else {
-      // minStart = mean - (sd * ((binCount - 1) / 2) / 2);
-      // increment = sd / 2; // 0.5 standard deviation
-      binCount++;
-      minStart = context.mean - (context.sd * (binCount / 2 - 1));
-      increment = context.sd; // 1 standard deviation
-    }
-    for (let i = 0; i < (binCount - 1); i++) {
-      let value = minStart + increment * i;
-      binBreaks.push(value);
+    if(meanAsBinBoundary){
+      let minStart = context.mean - (context.sd * sdfactor * (Math.ceil(binCount / 2) - 1));
+      let increment = context.sd * sdfactor;
+      for (let i = 0; i < (binCount - 1); i++) {
+        let value = minStart + increment * i;
+        binBreaks.push(value);
+      }
+    }else{
+      let minStart = context.mean - (context.sd * sdfactor * (Math.ceil(binCount / 2) - 1)) - context.sd * sdfactor / 2;
+      let increment = context.sd * sdfactor;
+      for (let i = 0; i < (binCount - 1); i++) {
+        let value = minStart + increment * i;
+        binBreaks.push(value);
+      }  
     }
 
     // Compute Bin Sizes
@@ -408,11 +406,8 @@ export class BinGuru {
    * Manual Interval, similar to User Defined
    * @returns { binCount: number, binBreaks: number[], binSizes: object, dataRange: number[], dataBinAssignments: object }
    */
-  manualInterval() {
+  manualInterval(binBreaks = [1, 2, 3]) {
     let context = this;
-
-    // let binBreaks = [context.mean - (context.mean - context.min) / 2, context.mean + (context.max - context.mean) / 2];
-    let binBreaks = [70, 80, 90];
 
     // Compute Bin Sizes
     let binSizes = context.computeBinSizes(binBreaks);
@@ -512,12 +507,18 @@ export class BinGuru {
    * Defined Interval
    * @returns { binCount: number, binBreaks: number[], binSizes: object, dataRange: number[], dataBinAssignments: object }
    */
-  definedInterval() {
+  definedInterval(binExtent:number|any=null) {
     let context = this;
+
     let binBreaks: number[] = [];
     let binCount = 1; // binCount is hard-coded here.
-    while (context.min + (context.binExtent * binCount) < context.max) {
-      binBreaks.push(context.min + context.binExtent * binCount);
+
+    // Use the default `this.binExtent` from the class variable (set in the constructor) unless local variable `binExtent` is supplied.
+    if(binExtent == null){
+      binExtent = this.binExtent;
+    }
+    while (context.min + (binExtent * binCount) < context.max) {
+      binBreaks.push(context.min + binExtent * binCount);
       binCount++;
     }
 
@@ -584,31 +585,25 @@ export class BinGuru {
    * Intervals grow exponentially, based on a logarithmic scale, to accommodate a wide range of data values and emphasize relative differences at both small and large scales.
    * @returns { binCount: number, binBreaks: number[], binSizes: object, dataRange: number[], dataBinAssignments: object }
    */
-  logarithmicInterval(logBase: number | string = 'auto') {
+  logarithmicInterval() {
     let context = this;
     let binBreaks: number[] = [];
     let binBreak: number = context.min;
 
-    // Calculate the logarithmic base
-    if (logBase == "auto") {
-
-      // Calculate the logarithmic base from the data extent and desired bin count
-      logBase = Math.pow((context.max / context.min), (1 / context.binCount));
-
-      // Generate the bin boundaries using the logarithmic scale
-      for (let i = 0; i < context.binCount; i++) {
-        if (i != 0) binBreaks.push(binBreak);
-        binBreak *= logBase;
-      }
-    } else {
-
-      // Calculate the logarithmic interval size
-      const logIntervalSize = (Math.log10(context.max) - Math.log10(context.min)) / context.binCount;
-
-      for (let i = 0; i < context.binCount; i++) {
-        if (i != 0) binBreaks.push(binBreak);
-        binBreak *= Math.pow(10, logIntervalSize);
-      }
+    // Calculate the logarithmic interval size
+    let max = context.max;
+    let min = context.min;
+    const epsilon = 1e-10;
+    if(max == 0){
+      max = epsilon;
+    }
+    if(min == 0){
+      min = epsilon;
+    }
+    const logIntervalSize = (Math.log10(context.max) - Math.log10(context.min)) / context.binCount;
+    for (let i = 0; i < context.binCount; i++) {
+      if (i != 0) binBreaks.push(binBreak);
+      binBreak *= Math.pow(10, logIntervalSize);
     }
 
     // Compute Bin Sizes
@@ -1262,9 +1257,13 @@ export class BinGuru {
     }
     if (binMin > dataMin) {
       binMin = dataMin;
+    } else if (binMin <= dataMin){
+      binMin = parseFloat((dataMin * 0.9).toFixed(context.precision)); // Heuristic just to go just beyond the dataMin
     }
     if (binMax < dataMax) {
       binMax = dataMax;
+    }else if(binMax >= dataMax){
+      binMax = parseFloat((dataMax * 1.1).toFixed(context.precision)); // Heuristic just to go just beyond the dataMax
     }
 
     let data: object[] = [];
@@ -1336,7 +1335,7 @@ export class BinGuru {
           "filter": "datum.binSize != 0"
         }],
         "encoding": {
-          "x": { "field": "binMin", "type": "quantitative", "axis": { "title": null, "values": binBreaks, "format": ".2f", "labelFontSize": 16 }, "scale": { "domain": [binMin, binMax] } },
+          "x": { "field": "binMin", "type": "quantitative", "axis": { "title": null, "values": binBreaks, "format": `.${context.precision}f`, "labelFontSize": 16 }, "scale": { "domain": [binMin, binMax] } },
           "y": {
             "field": "binningMethod", "type": "ordinal", "axis": {
               "title": null,
@@ -1348,7 +1347,7 @@ export class BinGuru {
           },
           "x2": {
             "field": "binMax", "scale": { "domain": [binMin, binMax] }, "axis": {
-              "format": ".2f",
+              "format": `.${context.precision}f`,
               "labelFontSize": 16
             }
           },
@@ -1395,9 +1394,9 @@ export class BinGuru {
           "filter": "datum.binSize == 0"
         }],
         "encoding": {
-          "x": { "field": "binMin", "type": "quantitative", "axis": { "title": null, "values": binBreaks, "format": ".2f" }, "scale": { "domain": [binMin, binMax] } },
+          "x": { "field": "binMin", "type": "quantitative", "axis": { "title": null, "values": binBreaks, "format": `.${context.precision}f` }, "scale": { "domain": [binMin, binMax] } },
           "y": { "field": "binningMethod", "type": "ordinal", "axis": { "title": null, "labelFontSize": 16, "labelLimit": 250, "labelPadding": 10 } },
-          "x2": { "field": "binMax", "scale": { "domain": [binMin, binMax] }, "axis": { "format": ".2f" } },
+          "x2": { "field": "binMax", "scale": { "domain": [binMin, binMax] }, "axis": { "format": `.${context.precision}f` } },
           "size": { "value": 2 },
           "strokeDash": { "value": [8, 8] }
         }
@@ -1422,6 +1421,7 @@ export class BinGuru {
       ]
     }
 
+    // For now, hard-coding the Unclassed binning method to the viridis color scale (as the linear gradient implementation requires discrete 'stop' points and there is no API that returns the list of colors for a Vega-Lite supported color scheme code).
     if (binningMethodName == UNCLASSED) {
       delete vlSpec["layer"][0]["encoding"]["color"];
       vlSpec["layer"][0]["mark"]["color"] = {
