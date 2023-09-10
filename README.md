@@ -41,12 +41,16 @@ BinGuru was created by
 
 ### Citations
 ```bibTeX
-@article{narechania2023resiliency,
-  title = {{Resiliency: A Consensus Binning Method}},
-  author = {{Narechania}, Arpit and {Endert}, Alex and {Andris}, Clio},
-  journal={GIScience 2023 Short Paper Proceedings},
-  doi = {},
-  year = {2023}
+@InProceedings{narechania2023resiliency,
+  author =	{Narechania, Arpit and Endert, Alex and Andris, Clio},
+  title =	{{Resiliency: A Consensus Data Binning Method}},
+  booktitle =	{12th International Conference on Geographic Information Science (GIScience 2023)},
+  pages =	{55:1--55:7},
+  series =	{Leibniz International Proceedings in Informatics (LIPIcs)},
+  year =	{2023},
+  volume =	{277},
+  publisher =	{Schloss Dagstuhl -- Leibniz-Zentrum f{\"u}r Informatik},
+  doi =		{10.4230/LIPIcs.GIScience.2023.55}
 }
 ```
 
