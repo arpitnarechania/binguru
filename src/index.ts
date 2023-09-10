@@ -1002,14 +1002,16 @@ export class BinGuru {
     let resiliencyData: object[] = [];
     Object.keys(frequencyOfMostFrequentBins).forEach(function (primaryKey, valindex) {
       let obj: any = {};
-      obj["primaryKey"] = primaryKey;
-      obj["value"] = context.rawData[valindex];
-      obj["binCandidates"] = [];
-
-      Object.keys(binningMethodObjs).forEach(function (binningMethod) {
-        obj["binCandidates"].push(JSON.parse(JSON.stringify(binningMethodObjs[binningMethod]["dataBinAssignments"][primaryKey])));
-      });
-      resiliencyData.push(obj);
+      if(context.isValid(context.rawData[valindex])){
+        obj["primaryKey"] = primaryKey;
+        obj["value"] = context.rawData[valindex];
+        obj["binCandidates"] = [];
+  
+        Object.keys(binningMethodObjs).forEach(function (binningMethod) {
+          obj["binCandidates"].push(JSON.parse(JSON.stringify(binningMethodObjs[binningMethod]["dataBinAssignments"][primaryKey])));
+        });
+        resiliencyData.push(obj);
+      }
     });
 
     let itemwiseBinPriorities: any = {};
