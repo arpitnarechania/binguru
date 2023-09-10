@@ -991,6 +991,9 @@ export class BinGuru {
           mostFrequentBins[primaryKey] = 0;
         }
         mostFrequentBins[primaryKey] = context.getMostFrequentElement(binAssignmentsForPrimaryKey);
+      }else{
+        mostFrequentBins[primaryKey] = null;
+        frequencyOfMostFrequentBins[primaryKey] = null;
       }
     });
     
